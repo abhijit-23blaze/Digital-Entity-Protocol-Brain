@@ -17,10 +17,11 @@ class BrainNetwork:
 
     async def run_dynamic(self, query: str) -> BrainContext:
         """Asks the PFC to decide the flow, then executes it."""
-        flow = self.pfc.decide_flow(query)
+        flow, content = self.pfc.decide_flow(query)
         
         if flow == "fast":
-            return self.run_fast(query)
+            # Pass the pre-generated content to run_fast
+            return self.run_fast(query, content)
         elif flow == "logical":
             return self.run_logical(query)
         elif flow == "creative":
@@ -32,11 +33,11 @@ class BrainNetwork:
             # Default to sequential
             return self.run_sequential(query)
 
-    def run_fast(self, query: str) -> BrainContext:
+    def run_fast(self, query: str, content: str = None) -> BrainContext:
         """Flow E: Fast / Trivial"""
         ctx = BrainContext(original_query=query, current_stage="Fast Flow")
-        # PFC handles everything directly
-        ctx = self.pfc.quick_reply(ctx) 
+        # Reuse quick_reply but passing the content if we have it
+        ctx = self.pfc.quick_reply(ctx, content) 
         return ctx
 
     def run_sequential(self, query: str) -> BrainContext:
