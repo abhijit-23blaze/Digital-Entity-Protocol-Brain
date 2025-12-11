@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution / packaging
+.Python
+build/
+dist/
+wheels/
+*.egg-info/
+*.eggs
+PKG-INFO
+# poetry
+.venv
+# pipenv
+# Pipfile.lock is required to be in version control
+# pdm
+# pdm.lock is required to be in version control
+
+# IDEs and editors
+.idea/  # IntelliJ IDEA / PyCharm
+.vscode/ # Visual Studio Code (uncomment if desired, typically tracked)
+*.swp
+*~
+.sess
+
+# OS-generated files
+.DS_Store # macOS
+.Thumbs.db # Windows
