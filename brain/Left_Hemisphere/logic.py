@@ -15,9 +15,11 @@ class LeftHemisphere(BrainRegion):
         search_results = []
         if self.search_client.is_available:
             search_query = context.original_query
-            # If we have a plan, use it to refine the search
+            # If we have a plan, append plan context but respect Tavily's 400-char limit
             if context.plan:
-                search_query = f"{context.original_query} {' '.join(context.plan[:2])}"
+                plan_context = ' '.join(context.plan[:2])
+                combined = f"{context.original_query} {plan_context}"
+                search_query = combined[:400]
 
             context.add_log(self.name, f"Searching the web via Tavily: '{search_query[:80]}...'")
             search_results = self.search_client.search(search_query, max_results=5)

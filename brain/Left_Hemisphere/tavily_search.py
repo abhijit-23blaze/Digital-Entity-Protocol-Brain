@@ -36,6 +36,11 @@ class TavilySearchClient:
             return []
 
         try:
+            # Tavily API has a 400-character limit on queries
+            if len(query) > 400:
+                query = query[:400].rsplit(' ', 1)[0]
+                print(f"[Tavily] Warning: Query truncated to {len(query)} chars (max 400).")
+
             response = self.client.search(
                 query=query,
                 max_results=max_results,
