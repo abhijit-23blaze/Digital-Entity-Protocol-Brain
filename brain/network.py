@@ -46,6 +46,7 @@ class BrainNetwork:
         ctx = self.pfc.process(ctx)
         ctx = self.hippo.process(ctx)
         ctx = self.left.process(ctx)
+        self._index_search_results(ctx)
         ctx = self.right.process(ctx)
         return ctx
 
@@ -55,6 +56,7 @@ class BrainNetwork:
         ctx = self.pfc.process(ctx)
         ctx = self.hippo.process(ctx)
         ctx = self.left.process(ctx)
+        self._index_search_results(ctx)
         
         # Final output is the Logical facts joined
         ctx.final_output = "\n".join(ctx.logical_facts) if ctx.logical_facts else "No logical output generated."
@@ -83,10 +85,23 @@ class BrainNetwork:
             ctx_left, ctx_right = await asyncio.gather(t1, t2)
             
         ctx.logical_facts = ctx_left.logical_facts
+        ctx.search_results = ctx_left.search_results
         ctx.creative_draft = ctx_right.creative_draft
         ctx.logs.extend(ctx_left.logs)
         ctx.logs.extend(ctx_right.logs)
         
+        # Index search results discovered during parallel processing
+        self._index_search_results(ctx)
+        
         # PFC Synthesis
         ctx = self.pfc.process(ctx)
         return ctx
+
+    def _index_search_results(self, ctx: BrainContext):
+        """Index Tavily search results into HippoRAG for long-term memory."""
+        if ctx.search_results:
+            try:
+                self.hippo.index_search_results(ctx.search_results)
+                ctx.add_log("BrainNetwork", f"Indexed {len(ctx.search_results)} search results into long-term memory.")
+            except Exception as e:
+                ctx.add_log("BrainNetwork", f"Failed to index search results: {e}")

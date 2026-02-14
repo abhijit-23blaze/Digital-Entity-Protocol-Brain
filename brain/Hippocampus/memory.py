@@ -74,3 +74,33 @@ class Hippocampus(BrainRegion):
             self.hipporag.index(docs=[content])
             return True
         return False
+
+    def index_search_results(self, search_results: list):
+        """
+        Index Tavily search results into HippoRAG for long-term memory.
+        
+        Each search result's content becomes a document in the knowledge graph,
+        prefixed with its title and source URL for traceability.
+        """
+        if not self.hipporag or not search_results:
+            return False
+
+        docs = []
+        for result in search_results:
+            title = result.get("title", "Untitled")
+            url = result.get("url", "")
+            content = result.get("content", "")
+            if content.strip():
+                doc = f"[Source: {title} | {url}]\n{content}"
+                docs.append(doc)
+
+        if docs:
+            try:
+                self.hipporag.index(docs=docs)
+                print(f"[Hippocampus] Indexed {len(docs)} search results into HippoRAG.")
+                return True
+            except Exception as e:
+                print(f"[Hippocampus] Failed to index search results: {e}")
+
+        return False
+
