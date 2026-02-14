@@ -1,37 +1,45 @@
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from brain.schemas import BrainContext
 
 class LLMClient:
-    """Wrapper around a Gemini GenerativeModel with optional thinking control.
+    """Wrapper around a Gemini model via the google-genai SDK.
     
     Args:
-        model_name: Gemini model identifier.
-        thinking: Thinking level — 'high', 'balanced', 'minimal', or None.
-                  'high'    → deep reasoning (Left Hemisphere / logic).
-                  'minimal' → suppress reasoning (Right Hemisphere / creative).
-                  None      → model default.
+        model_name: Gemini model identifier (e.g. 'gemini-3-pro-preview').
+        thinking: Thinking level — 'low', 'high', or None for model default.
+                  'high' → deep reasoning (Left Hemisphere / logic).
+                  'low'  → suppress reasoning (Right Hemisphere / creative).
+                  None   → model default (high for Gemini 3).
     """
     def __init__(self, model_name: str = 'gemini-3-pro-preview', thinking: str | None = None):
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY not found in environment variables.")
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(model_name)
-        self.thinking = thinking.upper() if thinking else None
+        self.client = genai.Client(api_key=api_key)
+        self.model_name = model_name
+        self.thinking = thinking  # 'low', 'high', or None
 
-    def generate(self, system_prompt: str, user_content: str, temperature: float = 0.7) -> str:
+    def generate(self, system_prompt: str, user_content: str, temperature: float = 1.0) -> str:
+        """Generate content using the Gemini API.
+        
+        Note: Gemini 3 recommends temperature=1.0 (the default).
+        """
         prompt = f"System: {system_prompt}\n\nUser: {user_content}"
         try:
-            gen_config = {"temperature": temperature}
+            config_kwargs = {"temperature": temperature}
 
             # Apply thinking configuration if set
             if self.thinking:
-                gen_config["thinking_config"] = {"thinking_level": self.thinking}
+                config_kwargs["thinking_config"] = types.ThinkingConfig(
+                    thinking_level=self.thinking
+                )
 
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(**gen_config)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(**config_kwargs),
             )
             return response.text
         except Exception as e:

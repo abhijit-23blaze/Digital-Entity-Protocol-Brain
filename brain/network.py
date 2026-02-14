@@ -12,7 +12,7 @@ class BrainNetwork:
         # Each brain region gets a model optimized for its role
         pfc_llm   = LLMClient(model_name='gemini-3-flash-preview')             # Fast planning & synthesis
         left_llm  = LLMClient(model_name='gemini-3-pro-preview', thinking='high')    # Deep reasoning
-        right_llm = LLMClient(model_name='gemini-3-pro-preview', thinking='minimal') # Creative, no deep reasoning
+        right_llm = LLMClient(model_name='gemini-3-pro-preview', thinking='low') # Creative, no deep reasoning
         hippo_llm = LLMClient(model_name='gemini-3-flash-preview')             # Memory retrieval
 
         self.pfc   = PrefrontalCortex("Prefrontal Cortex", pfc_llm)
