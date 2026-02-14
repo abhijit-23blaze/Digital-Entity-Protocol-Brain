@@ -1,19 +1,76 @@
+import sys
+import os
 from brain.core import BrainRegion
 from brain.schemas import BrainContext
 
+# Add HippoRAG src to path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+hipporag_src_path = os.path.join(current_dir, "HippoRAG", "src")
+if hipporag_src_path not in sys.path:
+    sys.path.append(hipporag_src_path)
+
+try:
+    from hipporag import HippoRAG
+except ImportError as e:
+    print(f"Warning: Failed to import HippoRAG: {e}")
+    HippoRAG = None
+
 class Hippocampus(BrainRegion):
+    def __init__(self, name: str, llm):
+        super().__init__(name, llm)
+        self.hipporag = None
+        if HippoRAG:
+            try:
+                # Initialize HippoRAG with Gemini
+                # We use a memory_storage subfolder for keeping indices
+                save_dir = os.path.join(current_dir, "memory_storage")
+                # Using Gemini 1.5 Flash as it's fast and effective
+                self.hipporag = HippoRAG(
+                    save_dir=save_dir,
+                    llm_model_name="gemini-1.5-flash", 
+                    embedding_model_name="gemini-embedding"
+                )
+            except Exception as e:
+                print(f"Error initializing HippoRAG: {e}")
+
     def process(self, context: BrainContext) -> BrainContext:
         context.add_log(self.name, "Retrieving relevant context/memories...")
-        system_prompt = (
-            "You are the Hippocampus, the Librarian. "
-            "You do not reason; you remember. "
-            "Given the plan, list 2 key historical concepts, analogies, or context items that would help. "
-            "Return a concise list."
-        )
-        plan_str = "\n".join(context.plan) if context.plan else context.original_query
-        memories = self.llm.generate(system_prompt, f"Plan: {plan_str}")
-        context.memories = [m.strip() for m in memories.split('\n') if m.strip()]
         
-        context.add_log(self.name, f"Context Retrieved:\n{memories}")
+        if not self.hipporag:
+            context.add_log(self.name, "HippoRAG not initialized, skipping retrieval.")
+             # Fallback to simple generation if HippoRAG fails? 
+             # Or just return empty. Original code had LLM generation. 
+             # Let's keep a fallback if HippoRAG is down? 
+             # No, user wants to use HippoRAG.
+            return context
+
+        query = "\n".join(context.plan) if context.plan else context.original_query
+        
+        try:
+            # self.hipporag.retrieve returns a list of QuerySolution
+            # We treat the query as a list of 1 string
+            results = self.hipporag.retrieve(queries=[query], num_to_retrieve=2)
+            
+            memories = []
+            if results and len(results) > 0:
+                memories = results[0].docs
+            
+            context.memories = memories
+            context.add_log(self.name, f"Context Retrieved:\n{memories}")
+            
+        except Exception as e:
+            context.add_log(self.name, f"Error during retrieval: {e}")
+            # Fallback to LLM simulation if RAG fails (optional, but good for robustness)
+            # context.add_log(self.name, "Fallback to LLM simulation.")
+            # ... (omitted for now to focus on getting RAG working)
+
         context.current_stage = "Contextualized"
         return context
+        
+    def add_memory(self, content: str):
+        """Allows adding new memories (documents) to the RAG store."""
+        if self.hipporag:
+            # Index expects a list of docs
+            self.hipporag.index(docs=[content])
+            return True
+        return False
