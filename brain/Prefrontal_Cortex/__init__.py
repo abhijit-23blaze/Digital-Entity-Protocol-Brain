@@ -8,8 +8,7 @@ class PrefrontalCortex(BrainRegion):
         super().__init__(name, llm)
         
         # Creating a specialized faster client for the router
-        # Using gemini-2.5-flash-lite-preview-09-2025 as requested
-        router_llm = LLMClient(model_name='gemini-2.5-flash-lite-preview-09-2025')
+        router_llm = LLMClient(model_name='gemini-3-flash-preview')
         
         self.router = PFCRouter(router_llm, name)
         self.planner = PFCPlanner("Prefrontal Cortex (Planner)", llm)

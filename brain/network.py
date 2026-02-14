@@ -9,11 +9,16 @@ from concurrent.futures import ThreadPoolExecutor
 
 class BrainNetwork:
     def __init__(self):
-        self.llm = LLMClient()
-        self.pfc = PrefrontalCortex("Prefrontal Cortex", self.llm)
-        self.hippo = Hippocampus("Hippocampus", self.llm)
-        self.left = LeftHemisphere("Left Hemisphere", self.llm)
-        self.right = RightHemisphere("Right Hemisphere", self.llm)
+        # Each brain region gets a model optimized for its role
+        pfc_llm   = LLMClient(model_name='gemini-3-flash-preview')             # Fast planning & synthesis
+        left_llm  = LLMClient(model_name='gemini-3-pro-preview', thinking='high')    # Deep reasoning
+        right_llm = LLMClient(model_name='gemini-3-pro-preview', thinking='minimal') # Creative, no deep reasoning
+        hippo_llm = LLMClient(model_name='gemini-3-flash-preview')             # Memory retrieval
+
+        self.pfc   = PrefrontalCortex("Prefrontal Cortex", pfc_llm)
+        self.hippo = Hippocampus("Hippocampus", hippo_llm)
+        self.left  = LeftHemisphere("Left Hemisphere", left_llm)
+        self.right = RightHemisphere("Right Hemisphere", right_llm)
 
     async def run_dynamic(self, query: str) -> BrainContext:
         """Asks the PFC to decide the flow, then executes it."""

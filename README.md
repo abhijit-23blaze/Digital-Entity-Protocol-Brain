@@ -9,7 +9,7 @@ The system mimics biological brain functions using 4 distinct agents:
 1.  **Prefrontal Cortex (The Executive)**:
     *   **Role**: Planning, Decision Making, & Routing.
     *   **Logic**: Analyzes queries to choose the best processing flow (`Auto`, `Logical`, `Creative`, `Fast`). Breakdowns complex tasks into actionable plans.
-    *   **Model**: *Gemini 2.5 Flash-Lite* (for ultra-low latency routing).
+    *   **Model**: *Gemini 3 Flash* (for fast planning & synthesis).
 
 2.  **Hippocampus (The Context Provider)**:
     *   **Role**: Memory & Context Retrieval.
@@ -18,10 +18,12 @@ The system mimics biological brain functions using 4 distinct agents:
 3.  **Left Hemisphere (The Engineer)**:
     *   **Role**: Logic, Structure, & Facts.
     *   **Logic**: Executes the plan with precision, producing dry, verifiable facts. Temperature: `0.0`.
+    *   **Model**: *Gemini 3 Pro* with **HIGH** thinking (deep reasoning).
 
 4.  **Right Hemisphere (The Artist)**:
     *   **Role**: Creativity, Synthesis, & Emotion.
     *   **Logic**: Transforms logical data into engaging, human-like narratives. Temperature: `0.9`.
+    *   **Model**: *Gemini 3 Pro* with **MINIMAL** thinking (creative, no deep reasoning).
 
 ## 🌊 Processing Flows
 
